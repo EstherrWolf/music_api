@@ -8,8 +8,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const service = app.get(ConfigService);
   app.enableCors();
-  app.useGlobalPipes(new ValidationPipe());
   app.setGlobalPrefix(service.getOrThrow(EnvironmentVariable.CONTEXT_PATH));
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,  // Tự động chuyển đổi dữ liệu từ string sang kiểu dữ liệu tương ứng
+    whitelist: true,  // Loại bỏ các thuộc tính không được định nghĩa trong DTO
+    forbidNonWhitelisted: true, // Quay lỗi nếu có thuộc tính không hợp lệ
+  }));
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
