@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { AuthToken, JwtPayload } from './jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/entities/user.entity';
 import * as bcryptjs from 'bcryptjs';
 import { ErrorMessage } from 'src/common/constants/error-message.constant';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { TokenService } from './token.service';
+import { TokenService } from '../../config/jwt/token.service';
+import { UserInfoDto } from '../users/dto/user-info.dto';
+import { plainToInstance } from 'class-transformer';
+import { JwtPayload } from 'src/config/jwt';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +17,7 @@ export class AuthService {
     private readonly tokenService: TokenService,
   ) {}
 
-  async register(infoRegister: RegisterDto): Promise<AuthToken> {
+  async register(infoRegister: RegisterDto): Promise<UserInfoDto> {
     const salt = await bcryptjs.genSalt();
     const hashedPassword = await bcryptjs.hash(infoRegister.password, salt);
 
@@ -36,22 +38,11 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException(ErrorMessage.INTERNAL_ERROR);
     }
-    const payload: JwtPayload = {
-      username: user.name,
-      sub: user.id,
-    };
 
-    const accessToken = this.tokenService.generateAccessToken(payload);
-
-    const refreshToken = this.tokenService.generateRefreshToken(
-      payload,
-      '365d',
-    );
-
-    return { accessToken, refreshToken };
+    return plainToInstance(UserInfoDto, user);
   }
 
-  async login(infoLogin: LoginDto): Promise<AuthToken> {
+  async login(infoLogin: LoginDto): Promise<UserInfoDto> {
     const user = await this.userService.findUserByEmail(infoLogin.email);
     if (!user) {
       throw new BadRequestException(ErrorMessage.LOGIN_FAILED);
@@ -68,24 +59,12 @@ export class AuthService {
       });
     }
 
-    const payload: JwtPayload = {
-      username: user.name,
-      sub: user.id,
-    };
-
-    const accessToken = this.tokenService.generateAccessToken(payload);
-
-    const refreshToken = this.tokenService.generateRefreshToken(
-      payload,
-      '365d',
-    );
-
-    return { accessToken, refreshToken };
+    return plainToInstance(UserInfoDto, user);
   }
 
   async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
-      const decoded = this.tokenService.verifyToken(refreshToken);
+      const decoded = this.tokenService.verifyToken(refreshToken, true);
       const user = await this.userService.findUserById(decoded.sub);
       if (!user) {
         throw new BadRequestException(ErrorMessage.INVALID_TOKEN);
@@ -95,7 +74,6 @@ export class AuthService {
         sub: user.id,
       };
       const newAccessToken = this.tokenService.generateAccessToken(payload);
-
       return { accessToken: newAccessToken };
     } catch (error) {
       throw new BadRequestException(ErrorMessage.INVALID_TOKEN);

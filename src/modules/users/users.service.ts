@@ -52,4 +52,8 @@ export class UsersService {
     }
     await this.usersRepository.remove(user);
   }
+  // lấy profile info của người dùng
+  async getProfile(id: number): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id } });
+  }
 }
