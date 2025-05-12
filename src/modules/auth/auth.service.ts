@@ -18,6 +18,12 @@ export class AuthService {
   ) {}
 
   async register(infoRegister: RegisterDto): Promise<UserInfoDto> {
+    if (infoRegister.confirmPassword !== infoRegister.password) {
+      throw new BadRequestException({
+        message: ErrorMessage.REGISTER_FAILED,
+        description: 'Password does not match',
+      });
+    }
     const salt = await bcryptjs.genSalt();
     const hashedPassword = await bcryptjs.hash(infoRegister.password, salt);
 
@@ -45,7 +51,10 @@ export class AuthService {
   async login(infoLogin: LoginDto): Promise<UserInfoDto> {
     const user = await this.userService.findUserByEmail(infoLogin.email);
     if (!user) {
-      throw new BadRequestException(ErrorMessage.LOGIN_FAILED);
+      throw new BadRequestException({
+        message: ErrorMessage.LOGIN_FAILED,
+        description: 'Email or password are incorrect',
+      });
     }
 
     const isPasswordValid = await bcryptjs.compare(
