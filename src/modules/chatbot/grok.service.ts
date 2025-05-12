@@ -9,8 +9,8 @@ export class GrokService implements OnModuleInit {
   private readonly apiUrl: string;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('grok.apiKey');
-    const apiUrl = this.configService.get<string>('grok.apiUrl');
+    const apiKey = this.configService.get<string>('GROK_API_KEY');
+    const apiUrl = this.configService.get<string>('GROK_API_URL');
 
     if (!apiKey) {
       throw new Error('GROK_API_KEY is not configured');
