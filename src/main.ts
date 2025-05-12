@@ -21,11 +21,13 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.setGlobalPrefix(service.getOrThrow(EnvironmentVariable.CONTEXT_PATH));
-  app.useGlobalPipes(new ValidationPipe({
-    transform: true,  // Tự động chuyển đổi dữ liệu từ string sang kiểu dữ liệu tương ứng
-    whitelist: true,  // Loại bỏ các thuộc tính không được định nghĩa trong DTO
-    forbidNonWhitelisted: true, // Quay lỗi nếu có thuộc tính không hợp lệ
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true, // Tự động chuyển đổi dữ liệu từ string sang kiểu dữ liệu tương ứng
+      whitelist: true, // Loại bỏ các thuộc tính không được định nghĩa trong DTO
+      forbidNonWhitelisted: true, // Quay lỗi nếu có thuộc tính không hợp lệ
+    }),
+  );
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
