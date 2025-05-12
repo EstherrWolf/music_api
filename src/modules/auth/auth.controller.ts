@@ -16,9 +16,6 @@ import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { TokenService, JwtAuthGuard } from 'src/config/jwt';
 
-interface RequestWithUser extends Request {
-  user: { id: number; username: string };
-}
 
 @Controller('auth')
 export class AuthController {
@@ -32,8 +29,8 @@ export class AuthController {
     @Body(new ValidationPipe()) loginDto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = await this.authService.login(loginDto);
-    const payload = { username: user.name, sub: user.id };
+    const userInfo = await this.authService.login(loginDto);
+    const payload = { username: userInfo.name, sub: userInfo.id };
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 
@@ -50,7 +47,7 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    return { accessToken, refreshToken, user };
+    return { accessToken, refreshToken, userInfo };
   }
 
   @Post('register')
@@ -58,8 +55,8 @@ export class AuthController {
     @Body(new ValidationPipe()) registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const user = await this.authService.register(registerDto);
-    const payload = { username: user.name, sub: user.id };
+    const userInfo = await this.authService.register(registerDto);
+    const payload = { username: userInfo.name, sub: userInfo.id };
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 
@@ -76,8 +73,7 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-
-    return user;
+    return { accessToken, refreshToken, userInfo };
   }
 
   @Post('refresh')
@@ -109,9 +105,4 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  getMe(@Req() req: RequestWithUser) {
-    return req.user;
-  }
 }

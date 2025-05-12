@@ -10,6 +10,7 @@ import { LoggerModule } from './common/logger/logger.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { AuthModule } from './modules/auth/auth.module';
       synchronize: process.env.NODE_ENV !== 'production',
     }),
     UsersModule,
-    AuthModule
+    AuthModule,
+    ChatbotModule
   ],
   controllers: [AppController],
   providers: [
