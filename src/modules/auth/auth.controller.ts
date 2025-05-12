@@ -55,25 +55,8 @@ export class AuthController {
     @Body(new ValidationPipe()) registerDto: RegisterDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const userInfo = await this.authService.register(registerDto);
-    const payload = { username: userInfo.name, sub: userInfo.id };
-    const accessToken = this.tokenService.generateAccessToken(payload);
-    const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
-
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
-    return { accessToken, refreshToken, userInfo };
+    await this.authService.register(registerDto);
+    return "Registration successful";
   }
 
   @Post('refresh')
